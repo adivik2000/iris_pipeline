@@ -36,7 +36,7 @@ jobs:
 
       - name: Report with CML
         env:
-          REPO_TOKEN: \${{ secrets.GH_TOKEN }}
+          REPO_TOKEN: \${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "## 📊 Model Accuracy Report" > report.md
           cat metrics.txt >> report.md
