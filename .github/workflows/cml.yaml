@@ -1,0 +1,45 @@
+name: Train and Report Accuracy with CML
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  cml-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Set up GCP Credentials
+        run: |
+          echo "\${{ secrets.GOOGLE_APPLICATION_CREDENTIALS_JSON }}" > gcp-creds.json
+          dvc remote modify gcsremote credentialpath gcp-creds.json
+
+      - name: Pull dataset with DVC
+        run: dvc pull
+
+      - name: Run unit tests
+        run: pytest tests/
+
+      - name: Train model and generate metrics
+        run: python train.py
+
+      - name: Report with CML
+        env:
+          REPO_TOKEN: \${{ secrets.GH_TOKEN }}
+        run: |
+          echo "## 📊 Model Accuracy Report" > report.md
+          cat metrics.txt >> report.md
+          echo "### 🔁 Accuracy Comparison" >> report.md
+          dvc metrics diff --show-md >> report.md || echo "No previous metrics to compare." >> report.md
+          cml comment create report.md
