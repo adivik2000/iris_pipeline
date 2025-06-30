@@ -1,5 +1,4 @@
 pandas
 scikit-learn
-pytest
-dvc[gcs]
-cml
+pytest==8.4.1
+dvc-gs==3.0.2
